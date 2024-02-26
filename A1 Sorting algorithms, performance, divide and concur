@@ -1,0 +1,149 @@
+#Problem 1
+# Distributes chocolates to students iteratively.
+
+
+
+def iteratively(chocolates, students):
+    """
+    Distributes chocolates to students iteratively.
+    Each student receives one chocolate based on the order of the lists.
+
+    Arguments:
+    chocolates -- list of dictionaries, where each dictionary contains details of a chocolate.
+    students -- list of student names.
+
+    Returns:
+    A list of tuples, each containing a student's name and the chocolate assigned to them.
+    """
+    distributed = []  # Initializes an empty list to store distribution pairs.
+    i = 0  # Counter for chocolates list.
+    # Iterates through each student.
+    for student in students:
+        # Checks if there are enough chocolates for the current student.
+        if i < len(chocolates):
+            # Appends a tuple of student and chocolate to the distribution list.
+            distributed.append((student, chocolates[i]))
+            i += 1  # Moves to the next chocolate.
+    return distributed  # Returns the distribution list.
+
+# Distributes chocolates to students recursively.
+def recursively(chocolates, students, i=0, distributed=None):
+    """
+       Recursively distributes chocolates to students.
+       Arguments:
+       chocolates -- list of dictionaries, each representing a chocolate with attributes like weight, price, and type.
+       students -- list of student names.
+       i -- current index for chocolates and students being processed.
+       distributed -- list of tuples with each tuple containing a student's name and their assigned chocolate.
+       Returns:
+       distributed -- list of tuples after all chocolates have been distributed.
+       """
+    # Initializes the distribution list on the first call.
+    if distributed is None:
+        distributed = []
+    # Checks if there are still students and chocolates left to distribute.
+    if i < len(students) and i < len(chocolates):
+        # Appends a tuple of student and chocolate to the distribution list.
+        distributed.append((students[i], chocolates[i]))
+        # Recursively calls itself for the next student and chocolate.
+        return recursively(chocolates, students, i + 1, distributed)
+    return distributed  # Returns the distribution list when done.
+
+# Example data for chocolates and students.
+chocolates = [{'weight': 50, 'price': 10, 'type': 'Dark'}, {'weight': 30, 'price': 15, 'type': 'Milk'}, {'weight': 20, 'price': 7, 'type': 'White'}]
+students = ['Ahmad', 'Aqil', 'Hamdan']
+
+# Demonstrates the iterative and recursive distribution.
+print(iteratively(chocolates, students))
+print(recursively(chocolates, students))
+
+#Problem 2
+# Sorts a list of dictionaries using merge sort algorithm.
+def merge_sort(arr, key):
+    """
+     Sorts a list of dictionaries based on a specified key using the Merge Sort algorithm.
+
+     Arguments:
+     arr -- list of dictionaries to be sorted.
+     key -- the key in the dictionaries by which to sort the list.
+     """
+    # Base case: if the list is more than one element, split and merge sort.
+    if len(arr) > 1:
+        mid = len(arr) // 2  # Finds the midpoint.
+        L = arr[:mid]  # Divides the array elements into 2 halves.
+        R = arr[mid:]
+
+        # Recursively sort both halves.
+        merge_sort(L, key)
+        merge_sort(R, key)
+
+        i = j = k = 0
+        # Merges the two halves sorted by the specified key.
+        while i < len(L) and j < len(R):
+            if L[i][key] < R[j][key]:
+                arr[k] = L[i]
+                i += 1
+            else:
+                arr[k] = R[j]
+                j += 1
+            k += 1
+
+        # If there are remaining elements in L, append them to arr.
+        while i < len(L):
+            arr[k] = L[i]
+            i += 1
+            k += 1
+
+        # If there are remaining elements in R, append them to arr.
+        while j < len(R):
+            arr[k] = R[j]
+            j += 1
+            k += 1
+
+# Sorting chocolates by weight and price using merge sort.
+sorted_by_weight = chocolates[:]
+merge_sort(sorted_by_weight, 'weight')
+print(" ")
+print(sorted_by_weight)
+
+sorted_by_price = chocolates[:]
+merge_sort(sorted_by_price, 'price')
+print(sorted_by_price)
+print(" ")
+
+#Problem 3
+def search(chocolates, value, key):
+    """
+        Performs a binary search to find a student holding a chocolate with a specified value (price or weight).
+        Arguments:
+        distributed_chocolates -- list of tuples, each containing a student's name and their chocolate details.
+        value -- the target value to search for (could be price or weight).
+        key -- specifies whether to search by 'price' or 'weight'.
+        Returns:
+        The name of the student holding the chocolate with the specified value, or "Not found" if not found.
+        """
+    low = 0  # Start of the search range
+    high = len(chocolates) - 1  # End of the search range
+
+    while low <= high:
+        mid = (low + high) // 2  # Find the middle index
+        if chocolates[mid][1][key] == value:
+            return chocolates[mid][0]  # Return student's name if the value matches
+        elif chocolates[mid][1][key] < value:
+            low = mid + 1  # Narrow search to the right half if the value is greater
+        else:
+            high = mid - 1  # Narrow search to the left half if the value is lesser
+
+    return "Not found"  # Return not found if the value does not match any chocolate
+
+distributed_chocolates = [
+    ('Ahmad', {'weight': 20, 'price': 7, 'type': 'White'}),
+    ('Aqil', {'weight': 30, 'price': 15, 'type': 'Milk'}),
+    ('Hamdan', {'weight': 50, 'price': 10, 'type': 'Dark'})
+]
+
+# Test case 1: Find student with a chocolate priced at 5
+print(search(distributed_chocolates, 15, 'price'))
+
+# Test case 2: Find student with a chocolate weighing 50
+print(search(distributed_chocolates, 50, 'weight'))
