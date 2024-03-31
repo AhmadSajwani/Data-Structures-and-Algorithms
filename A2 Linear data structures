@@ -1,0 +1,218 @@
+# Node for doubly linked list, holding patient data and pointers to previous and next nodes
+class Node:
+    def __init__(self, patient=None):
+        self.patient = patient  # The patient object
+        self.prev = None  # Pointer to the previous node in the list
+        self.next = None  # Pointer to the next node in the list
+
+# A doubly linked list to manage sequences of patients in an ordered manner
+class DoublyLinkedList:
+    def __init__(self):
+        self.head = None  # The first node in the list
+        self.tail = None  # The last node in the list
+
+# Adds a new patient to the end of the list
+    def append(self, patient):
+        new_node = Node(patient)
+        if self.tail is None:  # If list is empty, new node becomes both head and tail
+            self.head = self.tail = new_node
+        else:
+            new_node.prev = self.tail  # Set new node's prev to current tail
+            self.tail.next = new_node  # Set current tail's next to new node
+            self.tail = new_node  # Update the tail to be the new node
+
+    def remove(self, patient):
+        current = self.head
+        while current is not None:
+            if current.patient == patient:
+                # Re-link previous and next nodes around the node to be removed
+                if current.prev:
+                    current.prev.next = current.next
+                if current.next:
+                    current.next.prev = current.prev
+                # Update head or tail if necessary
+                if current == self.head:
+                    self.head = current.next
+                if current == self.tail:
+                    self.tail = current.prev
+                return True
+            current = current.next
+        return False
+
+# Allows iteration over the patients in the list
+    def __iter__(self):
+        current = self.head
+        while current:
+            yield current.patient
+            current = current.next
+
+# Represents a medical prescription
+class Prescription:
+    def __init__(self, medication, instructions):
+        self.medication = medication  # Name of the medication
+        self.instructions = instructions  # Dosage and administration instructions
+
+# Represents a patient with their details and prescriptions
+class Patient:
+    def __init__(self, name, medical_condition, appointment_time):
+        self.name = name
+        self.medical_condition = medical_condition
+        self.appointment_time = appointment_time
+        self.prescriptions = []  # List of prescriptions issued to the patient
+
+    # Adds a prescription to the patient's list of prescriptions
+    def add_prescription(self, prescription):
+        self.prescriptions.append(prescription)
+
+    # String representation of a patient
+    def __str__(self):
+        return f"{self.name} - {self.medical_condition} - {self.appointment_time}"
+
+# Represents a doctor with a list of patients
+class Doctor:
+    def __init__(self, name):
+        self.name = name
+        self.patients = DoublyLinkedList() # Patients assigned to this doctor
+
+    # Assigns a patient to this doctor
+    def assign_patient(self, patient):
+        self.patients.append(patient)
+
+# Main class to manage the hospital system
+class Hospital:
+    def __init__(self):
+        self.patients = DoublyLinkedList()  # All patients in the hospital
+        self.doctors = {}  # Dictionary mapping doctor names to Doctor objects
+
+    # Adds a new patient to the hospital
+
+    def add_patient(self, name, medical_condition, appointment_time):
+        patient = Patient(name, medical_condition, appointment_time)
+        self.patients.append(patient)
+        return patient
+
+    # Assigns a doctor to a patient
+
+    def assign_doctor_to_patient(self, doctor_name, patient):
+        if doctor_name not in self.doctors:
+            self.doctors[doctor_name] = Doctor(doctor_name)
+        self.doctors[doctor_name].assign_patient(patient)
+
+    # Issues a prescription to a patient
+    def issue_prescription(self, patient, medication, instructions):
+        prescription = Prescription(medication, instructions)
+        patient.add_prescription(prescription)
+
+    # Removes a patient from the hospital
+    def remove_patient(self, patient):
+        return self.patients.remove(patient)
+
+# User interface function to interact with the hospital management system
+def main_interface():
+    hospital = Hospital()
+    # Loop to display options and take inputs until the user decides to exit
+    while True:
+        print("\nHospital Management System")
+        print("1. Register Patient")
+        print("2. Assign Doctor to Patient")
+        print("3. Issue Prescription")
+        print("4. Remove Patient")
+        print("5. List All Patients")
+        print("6. Exit")
+        choice = input("Enter choice: ")
+        # Handling the user's choice by calling the appropriate hospital system functions
+        if choice == "1":
+            name = input("Enter patient name: ")
+            condition = input("Enter medical condition: ")
+            appointment_time = input("Enter appointment time: ")
+            patient = hospital.add_patient(name, condition, appointment_time)
+            print(f"Patient added: {patient}")
+        # Code for registering a new patient
+        elif choice == "2":
+            patient_name = input("Enter patient name to assign doctor: ")
+            doctor_name = input("Enter doctor name: ")
+            for patient in hospital.patients:
+                if patient.name == patient_name:
+                    hospital.assign_doctor_to_patient(doctor_name, patient)
+                    print(f"Assigned {doctor_name} to {patient_name}")
+                    break
+            else:
+                print("Patient not found.")
+        # Code for assigning a doctor to a patient
+        elif choice == "3":
+            patient_name = input("Enter patient name for prescription: ")
+            medication = input("Enter medication: ")
+            instructions = input("Enter instructions: ")
+            for patient in hospital.patients:
+                if patient.name == patient_name:
+                    hospital.issue_prescription(patient, medication, instructions)
+                    print(f"Issued prescription to {patient_name}")
+                    break
+            else:
+                print("Patient not found.")
+        # Code for issuing a prescription to a patient
+        elif choice == "4":
+            patient_name = input("Enter patient name to remove: ")
+            for patient in hospital.patients:
+                if patient.name == patient_name:
+                    if hospital.remove_patient(patient):
+                        print(f"Removed {patient_name}")
+                    else:
+                        print("Error removing patient.")
+                    break
+            else:
+                print("Patient not found.")
+        # Code for removing a patient from the hospital
+        elif choice == "5":
+            print("All Patients:")
+            for patient in hospital.patients:
+                print(patient)
+        # Code for listing all patients in the hospital
+        elif choice == "6":
+            break  #Exit the loop to end the program
+
+if __name__ == "__main__":
+    main_interface()
+
+# Example test functions to verify the system's functionalities
+
+def test_add_patient():
+    # Test for adding a patient to the system
+    hospital = Hospital()
+    hospital.add_patient("Saif", "Flu", "10:00 AM")
+    assert len(list(hospital.patients)) == 1, "Failed to add patient"
+
+def test_assign_doctor_to_patient():
+    # Test for assigning a doctor to a patient
+    hospital = Hospital()
+    patient = hospital.add_patient("Maryam", "Cold", "11:00 AM")
+    hospital.assign_doctor_to_patient("Dr. Smith", patient)
+    assert "Dr. Mohammed" in hospital.doctors, "Failed to assign doctor to patient"
+    doctor = hospital.doctors["Dr. Mohammed"]
+    assigned_patient = next(iter(doctor.patients), None)
+    assert assigned_patient is not None and assigned_patient.name == "Maryam", "Doctor does not have the correct patient assigned"
+
+def test_issue_prescription():
+    # Test for issuing a prescription to a patient
+    hospital = Hospital()
+    patient = hospital.add_patient("Abdullah", "Allergy", "12:00 PM")
+    hospital.issue_prescription(patient, "Antihistamine", "Take one pill daily")
+    assert len(patient.prescriptions) == 1, "Failed to issue prescription"
+    prescription = patient.prescriptions[0]
+    assert prescription.medication == "Antihistamine" and prescription.instructions == "Take one pill daily", "Prescription details are incorrect"
+
+def test_remove_patient():
+    # Test for removing a patient from the system
+    hospital = Hospital()
+    patient = hospital.add_patient("Saif", "Flu", "10:00 AM")
+    removed = hospital.remove_patient(patient)
+    assert removed is True, "Failed to remove patient"
+    assert len(list(hospital.patients)) == 0, "Patient was not removed"
+
+if __name__ == "__main__":
+    # Call test functions and print a success message if all tests pass
+    test_add_patient()
+    test_assign_doctor_to_patient()
+    test_issue_prescription()
+    test_remove_patient()
+    print("All tests passed!")
