@@ -1,0 +1,116 @@
+#Requirement [1]: Finding a Post by Its Unique Datetime
+class PostHashTable:
+    def __init__(self, size=1023):
+        # Initializes the hash table with a default size of 1023 (a prime number for better distribution)
+        # This creates an array (list of lists) with 'None' values.
+        self.size = size
+        self.table = [None] * self.size
+
+    def _hash(self, datetime):
+        # A private method that computes the hash value of a datetime.
+        # Uses Python's built-in hash function, then takes modulo size to fit the hash table size.
+        return hash(datetime) % self.size
+
+    def insert(self, datetime, post):
+        # Inserts a post into the hash table based on the datetime of the post.
+        # Calculates the hash index and adds the post to the corresponding bucket.
+        index = self._hash(datetime)
+        if not self.table[index]:  # If the bucket at the calculated index is empty, initialize it with an empty list.
+            self.table[index] = []
+        self.table[index].append(post)  # Append the post to the list at the computed index.
+
+    def find(self, datetime):
+        # Retrieves a post from the hash table using the datetime as a key.
+        # Calculates the index using the datetime and searches for the post in that bucket.
+        index = self._hash(datetime)
+        if self.table[index]:  # If the bucket is not empty,
+            for post in self.table[index]:  # Iterate through the list at the bucket.
+                if post['datetime'] == datetime:  # Check if the datetime matches the search query.
+                    return post  # Return the post if found.
+        return None  # If no post is found with the given datetime, return None.
+
+
+#Requirement [2]: Finding Posts in a Specific Time Range
+class TreeNode:
+    def __init__(self, datetime, post):
+        # Constructor for TreeNode, initializes the datetime, post, and left/right children.
+        self.datetime = datetime  # The unique datetime of the post (serves as the key in BST).
+        self.post = post  # The content of the social media post.
+        self.left = None  # Left child in the BST that will contain datetimes less than the current node's datetime.
+        self.right = None  # Right child in the BST that will contain datetimes greater than the current node's datetime.
+
+class PostBST:
+    def __init__(self):
+        # Initializes the root of the BST to None (i.e., an empty tree at the start).
+        self.root = None
+
+    def insert(self, datetime, post):
+        # Public method to insert a new node with a datetime and post.
+        # If the tree is empty, the new node becomes the root.
+        if not self.root:
+            self.root = TreeNode(datetime, post)
+        else:
+            self._insert(self.root, datetime, post)  # Otherwise, use the private _insert method to find the correct location.
+
+    def _insert(self, node, datetime, post):
+        # A private method that inserts recursively based on datetime values.
+        if datetime < node.datetime:
+            # If the datetime to insert is less than the current node's datetime, go left.
+            if not node.left:
+                node.left = TreeNode(datetime, post)  # If left child is None, place the new node here.
+            else:
+                self._insert(node.left, datetime, post)  # Otherwise, recurse into the left child.
+        else:
+            # If the datetime to insert is not less, go right.
+            if not node.right:
+                node.right = TreeNode(datetime, post)  # If right child is None, place the new node here.
+            else:
+                self._insert(node.right, datetime, post)  # Otherwise, recurse into the right child.
+
+    def find_range(self, start, end):
+        # Public method to find all posts within a specified datetime range [start, end].
+        return self._find_range(self.root, start, end)  # Uses the private recursive method to collect posts in the range.
+
+    def _find_range(self, node, start, end, result=None):
+        # A private method to perform an in-order traversal to find all posts within the range.
+        if result is None:
+            result = []  # Initializes result list on the first call.
+        if node:
+            # Traverse the left subtree if the start of the range is less than the current node's datetime.
+            if start < node.datetime:
+                self._find_range(node.left, start, end, result)
+            # Include the current node's post if its datetime is within the range.
+            if start <= node.datetime <= end:
+                result.append(node.post)
+            # Traverse the right subtree if the end of the range is greater than the current node's datetime.
+            if node.datetime < end:
+                self._find_range(node.right, start, end, result)
+        return result  # Return the list of posts found within the range.
+
+
+#Requirement [3]: Prioritizing Posts by Number of Views
+import heapq  # Importing the heapq module to use the heap functions provided by Python
+class MaxHeap:
+    def __init__(self):
+        # Constructor for MaxHeap, initializes an empty list that will be used to store heap elements.
+        self.heap = []
+
+    def insert(self, post):
+        # Inserts a post into the heap.
+        # Posts are stored in the heap as tuples, with the first element being the negative of the view count.
+        # The negative view count is used because Python's heapq implements a min-heap by default.
+        # By inserting the negative view counts, we simulate a max-heap behavior.
+        heapq.heappush(self.heap, (-post['views'], post))
+
+    def get_max(self):
+        # Retrieves and removes the post with the maximum number of views from the heap.
+        # Since the heap stores (-views, post), heappop will remove the entry with the smallest -views,
+        # which corresponds to the largest actual view count.
+        # [1] refers to the post in the tuple stored in the heap.
+        return heapq.heappop(self.heap)[1]
+
+    def remove_max(self):
+        # Removes the post with the maximum number of views from the heap.
+        # This function does not return the post; it only removes it.
+        # Similar to get_max, it pops the element with the smallest -views (largest views).
+        heapq.heappop(self.heap)
