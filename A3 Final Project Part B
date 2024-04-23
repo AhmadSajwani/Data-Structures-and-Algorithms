@@ -1,0 +1,132 @@
+# Importing heapq for priority queue functionality, used in Dijkstra's algorithm.
+import heapq
+
+
+class Graph:
+    def __init__(self):
+        # Initializes a dictionary to store vertices and their edges.
+        self.vertices = {}
+
+    def add_vertex(self, id):
+        # Adds a vertex (intersection) to the graph if it is not already present.
+        # Each vertex's ID is unique and used as a key in the vertices dictionary.
+        if id not in self.vertices:
+            self.vertices[id] = {}
+
+    def add_edge(self, from_vertex, to_vertex, weight, road_id, road_name, length):
+        # Adds a directed edge from 'from_vertex' to 'to_vertex' with additional properties:
+        # weight (travel time or congestion), road ID, road name, and physical length.
+        # This edge represents a road in the city network.
+        if from_vertex in self.vertices and to_vertex in self.vertices:
+            self.vertices[from_vertex][to_vertex] = (weight, road_id, road_name, length)
+
+    def get_edges(self):
+        # Retrieves a list of all edges in the graph, each represented as a tuple containing:
+        # (start_vertex, end_vertex, weight, road_id, road name, length)
+        edges = []
+        for from_vertex, connections in self.vertices.items():
+            for to_vertex, details in connections.items():
+                edges.append((from_vertex, to_vertex) + details)
+        return edges
+
+
+def dijkstra(graph, start_vertex):
+    # Initializes a dictionary of distances from 'start_vertex' to all other vertices as infinity.
+    # The distance to 'start_vertex' itself is initialized to zero.
+    distances = {vertex: float('infinity') for vertex in graph.vertices}
+    distances[start_vertex] = 0
+    # Priority queue (min-heap) to manage vertices for processing based on their distance from start_vertex.
+    priority_queue = [(0, start_vertex)]
+
+    while priority_queue:
+        # Extracts vertex with the smallest distance from the priority queue.
+        current_distance, current_vertex = heapq.heappop(priority_queue)
+
+        # Continues to next iteration if a shorter path to current_vertex has been found.
+        if current_distance > distances[current_vertex]:
+            continue
+
+        # Processes each adjacent vertex (neighbor) of the current vertex.
+        for neighbor, (weight, _, _, _) in graph.vertices[current_vertex].items():
+            # Calculates the total distance to the neighbor considering the current path.
+            distance = current_distance + weight
+
+            # If a shorter path to the neighbor is found, updates the distance and re-adds the neighbor to the queue.
+            if distance < distances[neighbor]:
+                distances[neighbor] = distance
+                heapq.heappush(priority_queue, (distance, neighbor))
+
+    return distances  # Returns the dictionary containing the shortest distances from start_vertex to all others.
+def find_shortest_path(graph, start_vertex, end_vertex):
+    # Execute Dijkstra's algorithm on the graph starting from 'start_vertex' to calculate shortest paths.
+    distances = dijkstra(graph, start_vertex)
+    # Retrieve and return the shortest path distance to 'end_vertex' from the computed distances.
+    return distances[end_vertex]
+
+#Test Case Rquirement 1
+# Initialize the graph
+city_graph = Graph()
+
+# Test 1: Add vertices and an edge, then print to verify correct insertion and edge properties.
+city_graph.add_vertex("A")
+city_graph.add_vertex("B")
+city_graph.add_edge("A", "B", 10, "R001", "Main Street", 100)
+print("Test 1 - Edges in the graph:", city_graph.get_edges())  # Expect [("A", "B", 10, "R001", "Main Street", 100)]
+
+# Test 2: Attempt to add an edge where one endpoint vertex does not exist.
+city_graph.add_edge("A", "C", 5, "R002", "Second Street", 50)
+print("Test 2 - Edges including a non-existent vertex:", city_graph.get_edges())  # Expect the edge list not to include A->C
+
+# Test 3: Add multiple edges and verify the complete list.
+city_graph.add_vertex("C")
+city_graph.add_edge("A", "C", 5, "R002", "Second Street", 50)
+city_graph.add_edge("B", "C", 15, "R003", "Third Street", 150)
+print("Test 3 - Complete edge list:", city_graph.get_edges())
+
+
+#Test Case Requirement 2
+# Setup the graph with intersections and roads
+distribution_graph = Graph()
+distribution_graph.add_vertex("Distribution Center")  # This is the starting point for distribution
+distribution_graph.add_vertex("House 1")
+distribution_graph.add_vertex("House 2")
+distribution_graph.add_vertex("House 3")
+distribution_graph.add_vertex("Intersection 1")  # Additional vertex for complexity
+distribution_graph.add_vertex("Intersection 2")  # Additional vertex for complexity
+
+# Connecting roads
+distribution_graph.add_edge("Distribution Center", "Intersection 1", 2, "R101", "Route 101", 100)
+distribution_graph.add_edge("Intersection 1", "House 1", 1, "R102", "Route 102", 50)
+distribution_graph.add_edge("Intersection 1", "House 2", 3, "R103", "Route 103", 75)
+distribution_graph.add_edge("Intersection 1", "Intersection 2", 2, "R104", "Route 104", 85)
+distribution_graph.add_edge("Intersection 2", "House 3", 2, "R105", "Route 105", 65)
+
+# Test 1: Compute shortest paths from the distribution center to all houses
+distances = dijkstra(distribution_graph, "Distribution Center")
+print("Shortest paths from Distribution Center to all houses:")
+print(f"Distance to House 1: {distances['House 1']} km")  # Expect 3 km (Distribution Center -> Intersection 1 -> House 1)
+print(f"Distance to House 2: {distances['House 2']} km")  # Expect 5 km (Distribution Center -> Intersection 1 -> House 2)
+print(f"Distance to House 3: {distances['House 3']} km")  # Expect 6 km (Distribution Center -> Intersection 1 -> Intersection 2 -> House 3)
+
+
+#Test Case Requirement 3
+# Assuming the graph has been populated and dijkstra function is defined as shown earlier.
+city_graph = Graph()
+city_graph.add_vertex("A")
+city_graph.add_vertex("B")
+city_graph.add_vertex("C")
+city_graph.add_vertex("D")  # Adding another vertex for complexity
+city_graph.add_edge("A", "B", 1, "R001", "Main Street", 100)
+city_graph.add_edge("B", "C", 2, "R002", "Second Street", 200)
+city_graph.add_edge("A", "C", 4, "R003", "Third Street", 300)
+city_graph.add_edge("C", "D", 1, "R004", "Fourth Street", 100)
+city_graph.add_edge("B", "D", 5, "R005", "Fifth Street", 150)
+
+# Test 1: Direct path from A to C
+print("Test 1 - Shortest path from A to C:", find_shortest_path(city_graph, "A", "C"))  # Expected output: 3 via B
+
+# Test 2: Shortest path from A to D which requires passing through multiple vertices
+print("Test 2 - Shortest path from A to D:", find_shortest_path(city_graph, "A", "D"))  # Expected output: 4 via B and C
+
+# Test 3: Path from a vertex to itself
+print("Test 3 - Path from C to C:", find_shortest_path(city_graph, "C", "C"))  # Expected output: 0
