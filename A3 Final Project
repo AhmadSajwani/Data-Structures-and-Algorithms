@@ -114,3 +114,61 @@ class MaxHeap:
         # This function does not return the post; it only removes it.
         # Similar to get_max, it pops the element with the smallest -views (largest views).
         heapq.heappop(self.heap)
+
+#Test Cases
+
+# Initialize the hash table
+ht = PostHashTable()
+
+# Test 1: Insert and find a post
+ht.insert("2023-04-15T12:30:00", {"datetime": "2023-04-15T12:30:00", "post": "Hello, world!", "user": "Alice"})
+print("Test 1 - Found Post:", ht.find("2023-04-15T12:30:00"))  # Should find and print the post we just inserted.
+
+# Test 2: Find non-existent post
+print("Test 2 - Found Post:", ht.find("2023-04-15T12:35:00"))  # Should return None as no post exists for this datetime.
+
+# Test 3: Collision handling
+# Assuming a very small hash table size to force collision, adjust _hash function accordingly for testing
+ht_small = PostHashTable(size=2)
+ht_small.insert("2023-04-15T12:30:00", {"datetime": "2023-04-15T12:30:00", "post": "Post one", "user": "Bob"})
+ht_small.insert("2023-04-15T12:30:01", {"datetime": "2023-04-15T12:30:01", "post": "Post two", "user": "Charlie"})
+print("Test 3 - Found Post:", ht_small.find("2023-04-15T12:30:01"))  # Should handle hash collision and retrieve the second post.
+
+
+#Test Case 2
+
+# Initialize the BST
+bst = PostBST()
+
+# Test 1: Single post range
+bst.insert("2023-04-15T12:00:00", {"datetime": "2023-04-15T12:00:00", "post": "Early morning post", "user": "Diane"})
+print("Test 1 - Posts in Range:", bst.find_range("2023-04-15T12:00:00", "2023-04-15T12:00:00"))  # Should return the single inserted post.
+
+# Test 2: Multiple posts in range
+bst.insert("2023-04-15T13:00:00", {"datetime": "2023-04-15T13:00:00", "post": "Lunch time post", "user": "Eve"})
+bst.insert("2023-04-15T14:00:00", {"datetime": "2023-04-15T14:00:00", "post": "Afternoon post", "user": "Frank"})
+print("Test 2 - Posts in Range:", bst.find_range("2023-04-15T12:00:00", "2023-04-15T15:00:00"))  # Should return all posts between noon and 3 PM.
+
+# Test 3: Empty range
+print("Test 3 - Posts in Range:", bst.find_range("2023-04-15T15:00:01", "2023-04-15T16:00:00"))  # Should return an empty list as no posts exist in this range.
+
+
+#Test Case 3
+
+# Initialize the max-heap
+max_heap = MaxHeap()
+
+# Test 1: Insert and retrieve max
+max_heap.insert({"views": 120, "post": "Popular post", "user": "Gary"})
+max_heap.insert({"views": 80, "post": "Less popular post", "user": "Helen"})
+print("Test 1 - Most Viewed Post:", max_heap.get_max())  # Should retrieve and print the post by Gary as it has the most views.
+
+# Test 2: Repeatedly get max
+max_heap.insert({"views": 150, "post": "Most popular post", "user": "Ian"})
+print("Test 2 - Most Viewed Post:", max_heap.get_max())  # First retrieval should return Ian's post.
+print("Test 2 - Next Most Viewed Post:", max_heap.get_max())  # Second retrieval should return Gary's post, as Ian's was removed.
+
+# Test 3: Remove max
+max_heap.insert({"views": 90, "post": "Moderately popular post", "user": "Judy"})
+max_heap.remove_max()  # Removes the post by Judy (most views currently).
+print("Test 3 - Remaining Max Post:", max_heap.get_max())  # Should show the next most viewed post, which will now be Helen's.
